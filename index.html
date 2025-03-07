@@ -35,8 +35,8 @@
         }
 
         .square {
-            width: 60px;
-            height: 60px;
+            width: 75px;
+            height: 75px;
             background-color: #333;
             border: 2px solid #666;
             border-radius: 8px;
@@ -106,7 +106,7 @@
 <body>
 
     <!-- 타이틀 추가 -->
-     <h1 style=""margin-top: 20px; font-size: 32px; coor: white; text-align: center;>Undecember</h1>
+     <h1 style="margin-top: 20px; font-size: 32px; color: white; text-align: center;">Undecember</h1>
 
     <div class="game-container">
         <!-- 룬 목록 -->
@@ -203,73 +203,83 @@
     <!-- 제작자정보 -->
      <footer style="margin-top: 20px; font-size: 12px; color: #aaa;">제작자: 공부중</footer>
 
-    <script>
-        let selectedRune = null;
-        let selectedLinkRune = null;
+     <script>
         const runeList = document.getElementById("runeList");
         const linkRuneList = document.getElementById("linkRuneList");
         const emptySlotImage = "empty_slot.png"; // 빈 슬롯 이미지
         const squares = document.querySelectorAll(".square");
-
-        // 173개의 일반 룬 추가
+    
+        // 드래그된 룬 이미지 정보 저장 변수
+        let draggedRuneSrc = null;
+    
+        // 173개의 일반 룬 추가 (드래그 가능하게 설정)
         for (let i = 1; i <= 173; i++) {
             let rune = document.createElement("img");
             rune.src = `rune_${i}.png`;
             rune.classList.add("rune");
             rune.setAttribute("data-src", `rune_${i}.png`);
-            rune.addEventListener("click", function() {
-                selectedRune = this.getAttribute("data-src");
-                selectedLinkRune = null; // 링크 룬 선택 해제
-                console.log("선택된 룬:", selectedRune);
+            rune.setAttribute("draggable", true); // 드래그 가능하도록 설정
+    
+            // 드래그 시작 시 이벤트
+            rune.addEventListener("dragstart", function(event) {
+                draggedRuneSrc = this.getAttribute("data-src"); // 드래그한 룬 저장
+                event.dataTransfer.setData("runeSrc", draggedRuneSrc);
             });
+    
             runeList.appendChild(rune);
         }
-
-        // 192개의 링크 룬 추가
+    
+        // 192개의 링크 룬 추가 (드래그 가능하게 설정)
         for (let i = 1; i <= 192; i++) {
             let linkRune = document.createElement("img");
             linkRune.src = `link_${i}.png`;
             linkRune.classList.add("rune");
             linkRune.setAttribute("data-src", `link_${i}.png`);
-            linkRune.addEventListener("click", function() {
-                selectedLinkRune = this.getAttribute("data-src");
-                selectedRune = null; // 일반 룬 선택 해제
-                console.log("선택된 링크 룬:", selectedLinkRune);
+            linkRune.setAttribute("draggable", true); // 드래그 가능하도록 설정
+    
+            // 드래그 시작 시 이벤트
+            linkRune.addEventListener("dragstart", function(event) {
+                draggedRuneSrc = this.getAttribute("data-src"); // 드래그한 룬 저장
+                event.dataTransfer.setData("runeSrc", draggedRuneSrc);
             });
+    
             linkRuneList.appendChild(linkRune);
         }
-
-        // 정사각형을 클릭하면 선택된 룬 또는 링크 룬이 장착됨
+    
+        // 정사각형(룬 슬롯)에 드래그 앤 드롭 이벤트 추가
         squares.forEach(square => {
-            square.addEventListener("click", function() {
-                if (selectedRune || selectedLinkRune) {
-                    console.log("룬 장착됨:", selectedRune || selectedLinkRune);
-
-                    // 기존 이미지가 있으면 삭제
-                    while (this.firstChild) {
-                        this.removeChild(this.firstChild);
-                    }
-
-                    // 새 이미지 추가
+            // 드롭 가능하도록 `dragover` 이벤트 추가
+            square.addEventListener("dragover", function(event) {
+                event.preventDefault(); // 기본 동작 방지 (드롭 가능하도록)
+            });
+    
+            // 드롭 이벤트 (룬 장착)
+            square.addEventListener("drop", function(event) {
+                event.preventDefault();
+                const runeSrc = event.dataTransfer.getData("runeSrc"); // 드래그된 이미지 가져오기
+    
+                if (runeSrc) {
+                    // 기존 룬 제거
+                    this.innerHTML = "";
+    
+                    // 새 이미지 추가 (룬 장착)
                     const img = document.createElement("img");
-                    img.src = selectedRune || selectedLinkRune;
+                    img.src = runeSrc;
                     img.alt = "장착된 룬";
                     this.appendChild(img);
                 }
             });
-
-            // 더블 클릭하면 빈칸 이미지로 변경
-            square.addEventListener("dblclick", function() {
-                while (this.firstChild) {
-                    this.removeChild(this.firstChild);
+    
+            // 룬이 장착된 슬롯을 다시 드래그하면 룬 제거
+            square.addEventListener("dragstart", function(event) {
+                const img = this.querySelector("img");
+                if (img) {
+                    event.dataTransfer.setData("runeSrc", emptySlotImage); // 빈 슬롯 이미지로 변경
+                    this.innerHTML = ""; // 슬롯을 비움
                 }
-                const img = document.createElement("img");
-                img.src = emptySlotImage;
-                img.alt = "빈 슬롯";
-                this.appendChild(img);
             });
         });
-
+    
         // 룬 초기화 버튼 기능 (룬 & 링크 룬 초기화)
         document.getElementById("resetButton").addEventListener("click", function() {
             squares.forEach(square => {
@@ -283,6 +293,25 @@
             });
             console.log("모든 룬과 링크 룬이 초기화됨!");
         });
+
+        squares.forEach(square => {
+    // 우클릭하면 장착된 룬 삭제 (contextmenu 이벤트)
+    square.addEventListener("contextmenu", function(event) {
+        event.preventDefault(); // 기본 우클릭 메뉴 비활성화
+
+        const img = this.querySelector("img");
+        if (img) {
+            this.innerHTML = ""; // 기존 룬 제거 후 빈 슬롯으로 변경
+
+            // 빈 슬롯 이미지 추가
+            const emptyImg = document.createElement("img");
+            emptyImg.src = emptySlotImage;
+            emptyImg.alt = "빈 슬롯";
+            this.appendChild(emptyImg);
+        }
+    });
+});
+
     </script>
 
 </body> 
