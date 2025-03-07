@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>룬 판 시스템</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #181818;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .square {
+            width: 60px;
+            height: 60px;
+            background-color: #333;
+            border: 2px solid #666;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .square img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            position: absolute;
+        }
+
+        /* 룬 목록 컨테이너 */
+        .rune-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .rune-list, .link-rune-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            width: 300px;
+            height: 500px;
+            overflow-y: auto;
+            border: 2px solid #666;
+            padding: 10px;
+        }
+
+        .rune {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 2px solid #aaa;
+            transition: transform 0.2s;
+        }
+
+        .rune:hover {
+            transform: scale(1.1);
+        }
+
+        /* 룬 초기화 버튼 스타일 */
+        .reset-button {
+            background-color: #ff5555;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .reset-button:hover {
+            background-color: #cc4444;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 타이틀 추가 -->
+     <h1 style=""margin-top: 20px; font-size: 32px; coor: white; text-align: center;>Undecember</h1>
+
+    <div class="game-container">
+        <!-- 룬 목록 -->
+        <div class="rune-container">
+            <h3>룬 목록</h3>
+            <div class="rune-list" id="runeList"></div>
+        </div>
+
+           <!-- 정사각형들을 배치하는 컨테이너 -->
+    <div class="container">
+        
+        <!-- 두 번째 줄: 5개 -->
+        <div class="row">
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+        </div>
+        
+        <!-- 첫 번째 줄: 6개 -->
+        <div class="row">
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+        </div>
+        <!-- 세 번째 줄: 7개 -->
+        <div class="row">
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+        </div>
+
+        <!-- 네 번째 줄: 8개 -->
+        <div class="row">
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+        </div>
+
+        <!-- 다섯 번째 줄: 7개 -->
+        <div class="row">
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+        </div>
+
+        <!-- 여섯 번째 줄: 6개 -->
+        <div class="row">
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+        </div>
+
+        <!-- 일곱 번째 줄: 5개 추가 -->
+        <div class="row">
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+            <div class="square"></div>
+        </div>
+    </div>
+
+        <!-- 링크 룬 목록 -->
+        <div class="rune-container">
+            <h3>링크 룬 목록</h3>
+            <div class="link-rune-list" id="linkRuneList"></div>
+        </div>
+    </div>
+
+    <!-- 룬 초기화 버튼 -->
+    <button class="reset-button" id="resetButton">룬 초기화</button>
+
+    <!-- 제작자정보 -->
+     <footer style="margin-top: 20px; font-size: 12px; color: #aaa;">제작자: 공부중</footer>
+
+    <script>
+        let selectedRune = null;
+        let selectedLinkRune = null;
+        const runeList = document.getElementById("runeList");
+        const linkRuneList = document.getElementById("linkRuneList");
+        const emptySlotImage = "empty_slot.png"; // 빈 슬롯 이미지
+        const squares = document.querySelectorAll(".square");
+
+        // 173개의 일반 룬 추가
+        for (let i = 1; i <= 173; i++) {
+            let rune = document.createElement("img");
+            rune.src = `rune_${i}.png`;
+            rune.classList.add("rune");
+            rune.setAttribute("data-src", `rune_${i}.png`);
+            rune.addEventListener("click", function() {
+                selectedRune = this.getAttribute("data-src");
+                selectedLinkRune = null; // 링크 룬 선택 해제
+                console.log("선택된 룬:", selectedRune);
+            });
+            runeList.appendChild(rune);
+        }
+
+        // 192개의 링크 룬 추가
+        for (let i = 1; i <= 192; i++) {
+            let linkRune = document.createElement("img");
+            linkRune.src = `link_${i}.png`;
+            linkRune.classList.add("rune");
+            linkRune.setAttribute("data-src", `link_${i}.png`);
+            linkRune.addEventListener("click", function() {
+                selectedLinkRune = this.getAttribute("data-src");
+                selectedRune = null; // 일반 룬 선택 해제
+                console.log("선택된 링크 룬:", selectedLinkRune);
+            });
+            linkRuneList.appendChild(linkRune);
+        }
+
+        // 정사각형을 클릭하면 선택된 룬 또는 링크 룬이 장착됨
+        squares.forEach(square => {
+            square.addEventListener("click", function() {
+                if (selectedRune || selectedLinkRune) {
+                    console.log("룬 장착됨:", selectedRune || selectedLinkRune);
+
+                    // 기존 이미지가 있으면 삭제
+                    while (this.firstChild) {
+                        this.removeChild(this.firstChild);
+                    }
+
+                    // 새 이미지 추가
+                    const img = document.createElement("img");
+                    img.src = selectedRune || selectedLinkRune;
+                    img.alt = "장착된 룬";
+                    this.appendChild(img);
+                }
+            });
+
+            // 더블 클릭하면 빈칸 이미지로 변경
+            square.addEventListener("dblclick", function() {
+                while (this.firstChild) {
+                    this.removeChild(this.firstChild);
+                }
+                const img = document.createElement("img");
+                img.src = emptySlotImage;
+                img.alt = "빈 슬롯";
+                this.appendChild(img);
+            });
+        });
+
+        // 룬 초기화 버튼 기능 (룬 & 링크 룬 초기화)
+        document.getElementById("resetButton").addEventListener("click", function() {
+            squares.forEach(square => {
+                while (square.firstChild) {
+                    square.removeChild(square.firstChild);
+                }
+                const img = document.createElement("img");
+                img.src = emptySlotImage;
+                img.alt = "빈 슬롯";
+                square.appendChild(img);
+            });
+            console.log("모든 룬과 링크 룬이 초기화됨!");
+        });
+    </script>
+
+</body> 
+</html>
